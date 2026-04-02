@@ -2,7 +2,12 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="English Practice">
+<meta name="theme-color" content="#2563eb">
+<link rel="manifest" href="manifest.json">
 <title>English Speaking Practice</title>
 <style>
 :root {
@@ -307,6 +312,24 @@ header .back-btn {
   .mic-btn { width: 70px; height: 70px; font-size: 28px; }
 }
 
+/* Session Summary */
+.session-summary {
+  text-align: center; padding: 24px 0;
+}
+.session-summary h2 { font-size: 22px; margin-bottom: 16px; }
+.summary-stats {
+  display: flex; gap: 8px; justify-content: center; margin: 16px 0;
+}
+.summary-stat {
+  padding: 12px 20px; border-radius: var(--radius);
+  font-weight: 700; font-size: 20px;
+}
+.summary-stat.good { background: #f0fdf4; color: var(--success); }
+.summary-stat.ok { background: #fffbeb; color: var(--warning); }
+.summary-stat.review { background: #fef2f2; color: var(--danger); }
+.summary-stat .summary-label { font-size: 11px; font-weight: 400; display: block; margin-top: 2px; }
+.summary-actions { margin-top: 24px; display: flex; flex-direction: column; gap: 8px; }
+
 /* No Speech API warning */
 .no-speech-warning {
   background: #fef2f2; border: 1px solid #fecaca;
@@ -419,6 +442,18 @@ header .back-btn {
     <button class="next-btn" id="tplNextBtn" onclick="nextTemplateQuestion()">
       Next Question &#8594;
     </button>
+
+    <div id="tplSummary" style="display:none">
+      <div class="session-summary">
+        <h2>Session Complete!</h2>
+        <div class="summary-stats" id="summaryStats"></div>
+        <div id="summaryDetails" style="text-align:left;margin-top:16px"></div>
+        <div class="summary-actions">
+          <button class="next-btn" style="display:block" onclick="startTemplate()">Practice Again</button>
+          <button class="show-answer-btn" onclick="goHome()">Back to Home</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- MONOLOGUE PRACTICE SCREEN -->
@@ -586,13 +621,18 @@ function startTemplate() {
   }
   currentQuestionIndex = 0;
   showScreen('template');
+  // Reset summary and show practice UI
+  document.getElementById('tplSummary').style.display = 'none';
+  document.querySelector('#templateScreen .template-ref').style.display = 'block';
+  document.querySelector('#templateScreen .question-card').style.display = 'block';
+  document.querySelector('#templateScreen .input-mode-toggle').style.display = 'flex';
+  setInputMode('template', inputModes.template);
   showTemplateQuestion();
 }
 
 function showTemplateQuestion() {
   if (currentQuestionIndex >= currentQuestions.length) {
-    alert('Session complete! Great work!');
-    goHome();
+    showSessionSummary();
     return;
   }
   const q = currentQuestions[currentQuestionIndex];
@@ -636,6 +676,35 @@ function scoreTemplate(score, e) {
   document.querySelectorAll('#tplScoreButtons .score-btn').forEach(btn => btn.classList.remove('selected'));
   if (e && e.target) e.target.classList.add('selected');
   document.getElementById('tplNextBtn').style.display = 'block';
+}
+
+function showSessionSummary() {
+  // Hide practice UI, show summary
+  document.querySelector('#templateScreen .template-ref').style.display = 'none';
+  document.querySelector('#templateScreen .question-card').style.display = 'none';
+  document.querySelector('#templateScreen .input-mode-toggle').style.display = 'none';
+  document.getElementById('tplMicArea').style.display = 'none';
+  document.getElementById('tplTextArea').style.display = 'none';
+  document.getElementById('tplRecResult').style.display = 'none';
+  document.getElementById('tplShowAnswer').style.display = 'none';
+  document.getElementById('tplAnswer').style.display = 'none';
+  document.getElementById('tplScoreButtons').style.display = 'none';
+  document.getElementById('tplNextBtn').style.display = 'none';
+
+  // Count scores from this session
+  const history = getHistory();
+  const sessionItems = history.slice(-currentQuestions.length);
+  const good = sessionItems.filter(i => i.score === 'good').length;
+  const ok = sessionItems.filter(i => i.score === 'ok').length;
+  const review = sessionItems.filter(i => i.score === 'review').length;
+
+  document.getElementById('summaryStats').innerHTML = `
+    <div class="summary-stat good">${good}<span class="summary-label">Good</span></div>
+    <div class="summary-stat ok">${ok}<span class="summary-label">OK</span></div>
+    <div class="summary-stat review">${review}<span class="summary-label">Review</span></div>
+  `;
+
+  document.getElementById('tplSummary').style.display = 'block';
 }
 
 function nextTemplateQuestion() {
