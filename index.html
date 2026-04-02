@@ -411,9 +411,9 @@ header .back-btn {
     </div>
 
     <div class="score-buttons" id="tplScoreButtons" style="display:none">
-      <button class="score-btn good" onclick="scoreTemplate('good')">&#9989; Good</button>
-      <button class="score-btn ok" onclick="scoreTemplate('ok')">&#128260; OK</button>
-      <button class="score-btn review" onclick="scoreTemplate('review')">&#128683; Review</button>
+      <button class="score-btn good" onclick="scoreTemplate('good', event)">&#9989; Good</button>
+      <button class="score-btn ok" onclick="scoreTemplate('ok', event)">&#128260; OK</button>
+      <button class="score-btn review" onclick="scoreTemplate('review', event)">&#128683; Review</button>
     </div>
 
     <button class="next-btn" id="tplNextBtn" onclick="nextTemplateQuestion()">
@@ -443,6 +443,7 @@ header .back-btn {
 
     <div class="text-input-area" id="monoTextArea">
       <textarea id="monoTextInput" placeholder="Type your English monologue here..." style="min-height:120px"></textarea>
+      <button class="show-answer-btn" style="margin-top:8px" onclick="finishMonoText()">Done Writing</button>
     </div>
 
     <div class="transcript-area" id="monoTranscript">Your speech will appear here...</div>
@@ -462,9 +463,9 @@ header .back-btn {
     </div>
 
     <div class="score-buttons" id="monoScoreButtons" style="display:none">
-      <button class="score-btn good" onclick="scoreMonologue('good')">&#9989; Good</button>
-      <button class="score-btn ok" onclick="scoreMonologue('ok')">&#128260; OK</button>
-      <button class="score-btn review" onclick="scoreMonologue('review')">&#128683; Review</button>
+      <button class="score-btn good" onclick="scoreMonologue('good', event)">&#9989; Good</button>
+      <button class="score-btn ok" onclick="scoreMonologue('ok', event)">&#128260; OK</button>
+      <button class="score-btn review" onclick="scoreMonologue('review', event)">&#128683; Review</button>
     </div>
 
     <button class="next-btn" id="monoNextBtn" onclick="nextMonologueTopic()">
@@ -617,7 +618,7 @@ function showTemplateAnswer() {
   document.getElementById('tplScoreButtons').style.display = 'flex';
 }
 
-function scoreTemplate(score) {
+function scoreTemplate(score, e) {
   const q = currentQuestions[currentQuestionIndex];
   const userAnswer = inputModes.template === 'text'
     ? document.getElementById('tplTextInput').value
@@ -633,7 +634,7 @@ function scoreTemplate(score) {
   });
 
   document.querySelectorAll('#tplScoreButtons .score-btn').forEach(btn => btn.classList.remove('selected'));
-  event.target.classList.add('selected');
+  if (e && e.target) e.target.classList.add('selected');
   document.getElementById('tplNextBtn').style.display = 'block';
 }
 
@@ -711,7 +712,7 @@ function showMonologueExample() {
   document.getElementById('monoScoreButtons').style.display = 'flex';
 }
 
-function scoreMonologue(score) {
+function scoreMonologue(score, e) {
   const t = MONOLOGUE_TOPICS[currentMonologueIndex];
   const transcript = inputModes.monologue === 'text'
     ? document.getElementById('monoTextInput').value
@@ -725,8 +726,17 @@ function scoreMonologue(score) {
   });
 
   document.querySelectorAll('#monoScoreButtons .score-btn').forEach(btn => btn.classList.remove('selected'));
-  event.target.classList.add('selected');
+  if (e && e.target) e.target.classList.add('selected');
   document.getElementById('monoNextBtn').style.display = 'block';
+}
+
+function finishMonoText() {
+  const text = document.getElementById('monoTextInput').value.trim();
+  if (!text) {
+    alert('Please type your monologue first.');
+    return;
+  }
+  document.getElementById('monoShowExample').style.display = 'block';
 }
 
 function nextMonologueTopic() {
