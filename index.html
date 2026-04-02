@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Speaking Practice</title>
+<style>
+:root {
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --danger: #dc2626;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --text: #1e293b;
+  --text-light: #64748b;
+  --border: #e2e8f0;
+  --radius: 12px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+.container { max-width: 640px; margin: 0 auto; padding: 16px; }
+
+/* Header */
+header {
+  background: var(--primary);
+  color: white;
+  padding: 16px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+header h1 { font-size: 18px; font-weight: 700; }
+header .back-btn {
+  position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: white; font-size: 24px; cursor: pointer;
+  display: none;
+}
+
+/* Home Screen */
+.home-stats {
+  display: flex; gap: 12px; margin: 16px 0;
+}
+.stat-card {
+  flex: 1; background: var(--card); border-radius: var(--radius);
+  padding: 16px; text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.stat-card .number { font-size: 28px; font-weight: 700; color: var(--primary); }
+.stat-card .label { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+
+.mode-card {
+  background: var(--card); border-radius: var(--radius);
+  padding: 24px; margin: 12px 0; cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  transition: transform 0.15s, box-shadow 0.15s;
+  border: 2px solid transparent;
+}
+.mode-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+.mode-card:active { transform: scale(0.98); }
+.mode-card .mode-icon { font-size: 36px; margin-bottom: 8px; }
+.mode-card .mode-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.mode-card .mode-desc { font-size: 13px; color: var(--text-light); }
+
+/* Practice Screen */
+.practice-screen { display: none; }
+
+.question-card {
+  background: var(--card); border-radius: var(--radius);
+  padding: 24px; margin: 16px 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.question-number {
+  font-size: 12px; color: var(--text-light);
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+}
+.question-text {
+  font-size: 20px; font-weight: 600; line-height: 1.5;
+}
+.question-hint {
+  font-size: 13px; color: var(--text-light); margin-top: 8px;
+  font-style: italic;
+}
+
+/* Mic Button */
+.mic-area { text-align: center; margin: 20px 0; }
+.mic-btn {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: var(--primary); border: none; color: white;
+  font-size: 32px; cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+.mic-btn:hover { background: var(--primary-dark); transform: scale(1.05); }
+.mic-btn.recording {
+  background: var(--danger);
+  animation: pulse 1.5s infinite;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
+  50% { box-shadow: 0 0 0 16px rgba(220, 38, 38, 0); }
+}
+.mic-label { font-size: 13px; color: var(--text-light); margin-top: 8px; }
+
+/* Input Mode Toggle */
+.input-mode-toggle {
+  display: flex; gap: 0; margin: 16px 0 8px;
+  border: 2px solid var(--border); border-radius: var(--radius);
+  overflow: hidden;
+}
+.input-mode-btn {
+  flex: 1; padding: 10px; border: none;
+  background: var(--card); font-size: 14px; font-weight: 600;
+  cursor: pointer; color: var(--text-light); transition: all 0.2s;
+}
+.input-mode-btn.active {
+  background: var(--primary); color: white;
+}
+
+/* Text Input */
+.text-input-area {
+  display: none; margin: 16px 0;
+}
+.text-input-area textarea {
+  width: 100%; min-height: 80px; padding: 14px;
+  border: 2px solid var(--border); border-radius: var(--radius);
+  font-size: 16px; line-height: 1.6; resize: vertical;
+  font-family: inherit; color: var(--text);
+  background: var(--card);
+}
+.text-input-area textarea:focus {
+  outline: none; border-color: var(--primary);
+  background: #eff6ff;
+}
+.text-input-area textarea::placeholder { color: #94a3b8; }
+
+/* Recognition Result */
+.recognition-result {
+  background: #f1f5f9; border-radius: var(--radius);
+  padding: 16px; margin: 16px 0; min-height: 60px;
+  font-size: 16px; line-height: 1.6;
+  border: 2px dashed var(--border);
+  display: none;
+}
+.recognition-result.has-text {
+  border-style: solid; border-color: var(--primary);
+  background: #eff6ff;
+}
+
+/* Answer Section */
+.answer-section {
+  background: var(--card); border-radius: var(--radius);
+  padding: 24px; margin: 16px 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  display: none;
+}
+.answer-label {
+  font-size: 12px; color: var(--success);
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 8px; font-weight: 600;
+}
+.answer-text { font-size: 16px; line-height: 1.6; }
+.answer-template {
+  margin-top: 12px; padding: 8px 12px;
+  background: #f0fdf4; border-radius: 8px;
+  font-size: 13px; color: var(--success);
+}
+.speak-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 12px; padding: 8px 16px;
+  background: #f1f5f9; border: 1px solid var(--border);
+  border-radius: 8px; cursor: pointer; font-size: 13px;
+  color: var(--text);
+}
+.speak-btn:hover { background: #e2e8f0; }
+
+/* Show Answer Button */
+.show-answer-btn {
+  width: 100%; padding: 14px;
+  background: var(--card); border: 2px solid var(--primary);
+  border-radius: var(--radius); color: var(--primary);
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.show-answer-btn:hover { background: var(--primary); color: white; }
+
+/* Self Score */
+.score-buttons {
+  display: flex; gap: 8px; margin: 16px 0;
+}
+.score-btn {
+  flex: 1; padding: 12px; border: 2px solid var(--border);
+  border-radius: var(--radius); background: var(--card);
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  text-align: center; transition: all 0.2s;
+}
+.score-btn.good { color: var(--success); }
+.score-btn.good:hover, .score-btn.good.selected { background: #f0fdf4; border-color: var(--success); }
+.score-btn.ok { color: var(--warning); }
+.score-btn.ok:hover, .score-btn.ok.selected { background: #fffbeb; border-color: var(--warning); }
+.score-btn.review { color: var(--danger); }
+.score-btn.review:hover, .score-btn.review.selected { background: #fef2f2; border-color: var(--danger); }
+
+.next-btn {
+  width: 100%; padding: 14px;
+  background: var(--primary); border: none;
+  border-radius: var(--radius); color: white;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s; display: none;
+}
+.next-btn:hover { background: var(--primary-dark); }
+
+/* Monologue Timer */
+.timer-display {
+  font-size: 48px; font-weight: 700; text-align: center;
+  color: var(--primary); margin: 16px 0; font-variant-numeric: tabular-nums;
+}
+.timer-display.warning { color: var(--warning); }
+.timer-display.danger { color: var(--danger); }
+
+/* Transcript Area */
+.transcript-area {
+  background: #f1f5f9; border-radius: var(--radius);
+  padding: 16px; margin: 16px 0; min-height: 120px;
+  font-size: 15px; line-height: 1.6;
+  border: 2px dashed var(--border);
+  max-height: 250px; overflow-y: auto;
+}
+.transcript-area.active { border-style: solid; border-color: var(--primary); background: #eff6ff; }
+
+/* Template Reference */
+.template-ref {
+  margin: 16px 0;
+}
+.template-toggle {
+  width: 100%; padding: 12px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); cursor: pointer;
+  font-size: 14px; text-align: left; color: var(--text-light);
+}
+.template-toggle:hover { background: #f1f5f9; }
+.template-list {
+  display: none; background: var(--card);
+  border: 1px solid var(--border); border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+  max-height: 300px; overflow-y: auto; padding: 8px;
+  font-size: 12px;
+}
+.template-list.show { display: block; }
+.template-list table { width: 100%; border-collapse: collapse; }
+.template-list td, .template-list th {
+  padding: 4px 8px; border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+.template-list th { font-weight: 600; position: sticky; top: 0; background: var(--card); }
+
+/* History Screen */
+.history-screen { display: none; }
+.history-day {
+  background: var(--card); border-radius: var(--radius);
+  padding: 16px; margin: 8px 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.history-date { font-weight: 600; margin-bottom: 8px; }
+.history-stats { display: flex; gap: 16px; font-size: 13px; color: var(--text-light); }
+.history-bar {
+  height: 6px; background: #e2e8f0; border-radius: 3px;
+  margin-top: 8px; overflow: hidden;
+}
+.history-bar-fill { height: 100%; border-radius: 3px; }
+.history-bar-fill.good { background: var(--success); }
+.history-bar-fill.ok { background: var(--warning); }
+.history-bar-fill.review { background: var(--danger); }
+
+/* Bottom Nav */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--card); border-top: 1px solid var(--border);
+  display: flex; padding: 8px 0;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  z-index: 100;
+}
+.nav-item {
+  flex: 1; text-align: center; padding: 8px;
+  cursor: pointer; color: var(--text-light);
+  font-size: 11px; transition: color 0.2s;
+}
+.nav-item.active { color: var(--primary); }
+.nav-item .nav-icon { font-size: 22px; display: block; margin-bottom: 2px; }
+
+/* Responsive */
+@media (max-width: 400px) {
+  .question-text { font-size: 17px; }
+  .mic-btn { width: 70px; height: 70px; font-size: 28px; }
+}
+
+/* No Speech API warning */
+.no-speech-warning {
+  background: #fef2f2; border: 1px solid #fecaca;
+  border-radius: var(--radius); padding: 16px; margin: 16px 0;
+  color: var(--danger); font-size: 14px; text-align: center;
+  display: none;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <button class="back-btn" id="backBtn" onclick="goHome()">&#8592;</button>
+  <h1 id="headerTitle">English Speaking Practice</h1>
+</header>
+
+<div class="container">
+  <!-- No Speech API Warning -->
+  <div class="no-speech-warning" id="noSpeechWarning">
+    Your browser does not support Web Speech API.<br>
+    Please use Chrome or Edge for voice recognition.
+  </div>
+
+  <!-- HOME SCREEN -->
+  <div id="homeScreen">
+    <div class="home-stats">
+      <div class="stat-card">
+        <div class="number" id="todayCount">0</div>
+        <div class="label">Today</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="streakCount">0</div>
+        <div class="label">Streak</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="totalCount">0</div>
+        <div class="label">Total</div>
+      </div>
+    </div>
+
+    <div class="mode-card" onclick="startTemplate()">
+      <div class="mode-icon">&#9997;&#65039;</div>
+      <div class="mode-title">Template Practice</div>
+      <div class="mode-desc">100 grammar templates - listen to Japanese, speak English. Business context.</div>
+    </div>
+
+    <div class="mode-card" onclick="startMonologue()">
+      <div class="mode-icon">&#128483;&#65039;</div>
+      <div class="mode-title">Monologue Practice</div>
+      <div class="mode-desc">100 speaking topics - 1 minute free speech with IELTS/TOEFL style topics.</div>
+    </div>
+
+    <div class="mode-card" onclick="showHistory()">
+      <div class="mode-icon">&#128200;</div>
+      <div class="mode-title">History & Progress</div>
+      <div class="mode-desc">View your practice history and track weak areas.</div>
+    </div>
+  </div>
+
+  <!-- TEMPLATE PRACTICE SCREEN -->
+  <div class="practice-screen" id="templateScreen">
+    <div class="template-ref">
+      <button class="template-toggle" id="templateToggle" onclick="toggleTemplateList()">
+        &#128214; View all 100 templates (tap to expand)
+      </button>
+      <div class="template-list" id="templateList"></div>
+    </div>
+
+    <div class="question-card">
+      <div class="question-number" id="tplQuestionNum">Question 1 / 5</div>
+      <div class="question-text" id="tplQuestionText"></div>
+      <div class="question-hint" id="tplHint" style="display:none"></div>
+    </div>
+
+    <div class="input-mode-toggle">
+      <button class="input-mode-btn active" id="tplVoiceMode" onclick="setInputMode('template','voice')">&#127908; Voice</button>
+      <button class="input-mode-btn" id="tplTextMode" onclick="setInputMode('template','text')">&#9997;&#65039; Text</button>
+    </div>
+
+    <div class="mic-area" id="tplMicArea">
+      <button class="mic-btn" id="tplMicBtn" onclick="toggleRecording('template')">&#127908;</button>
+      <div class="mic-label">Tap to speak</div>
+    </div>
+
+    <div class="text-input-area" id="tplTextArea">
+      <textarea id="tplTextInput" placeholder="Type your English answer here..."></textarea>
+    </div>
+
+    <div class="recognition-result" id="tplRecResult"></div>
+
+    <button class="show-answer-btn" id="tplShowAnswer" onclick="showTemplateAnswer()">
+      Show Model Answer
+    </button>
+
+    <div class="answer-section" id="tplAnswer">
+      <div class="answer-label">Model Answer</div>
+      <div class="answer-text" id="tplAnswerText"></div>
+      <div class="answer-template" id="tplAnswerTemplate"></div>
+      <button class="speak-btn" onclick="speakAnswer('template')">
+        &#128264; Listen
+      </button>
+    </div>
+
+    <div class="score-buttons" id="tplScoreButtons" style="display:none">
+      <button class="score-btn good" onclick="scoreTemplate('good')">&#9989; Good</button>
+      <button class="score-btn ok" onclick="scoreTemplate('ok')">&#128260; OK</button>
+      <button class="score-btn review" onclick="scoreTemplate('review')">&#128683; Review</button>
+    </div>
+
+    <button class="next-btn" id="tplNextBtn" onclick="nextTemplateQuestion()">
+      Next Question &#8594;
+    </button>
+  </div>
+
+  <!-- MONOLOGUE PRACTICE SCREEN -->
+  <div class="practice-screen" id="monologueScreen">
+    <div class="question-card">
+      <div class="question-number" id="monoTopicNum">Topic 1 / 100</div>
+      <div class="question-text" id="monoTopicEn"></div>
+      <div class="question-hint" id="monoTopicJp"></div>
+    </div>
+
+    <div class="timer-display" id="monoTimer">1:00</div>
+
+    <div class="input-mode-toggle">
+      <button class="input-mode-btn active" id="monoVoiceMode" onclick="setInputMode('monologue','voice')">&#127908; Voice</button>
+      <button class="input-mode-btn" id="monoTextMode" onclick="setInputMode('monologue','text')">&#9997;&#65039; Text</button>
+    </div>
+
+    <div class="mic-area" id="monoMicArea">
+      <button class="mic-btn" id="monoMicBtn" onclick="toggleRecording('monologue')">&#127908;</button>
+      <div class="mic-label" id="monoMicLabel">Tap to start (1 min)</div>
+    </div>
+
+    <div class="text-input-area" id="monoTextArea">
+      <textarea id="monoTextInput" placeholder="Type your English monologue here..." style="min-height:120px"></textarea>
+    </div>
+
+    <div class="transcript-area" id="monoTranscript">Your speech will appear here...</div>
+
+    <button class="show-answer-btn" id="monoShowExample" onclick="showMonologueExample()" style="display:none">
+      Show Example Answer
+    </button>
+
+    <div class="answer-section" id="monoExample">
+      <div class="answer-label">Example (EN)</div>
+      <div class="answer-text" id="monoExampleEn"></div>
+      <button class="speak-btn" onclick="speakAnswer('monologue')">
+        &#128264; Listen
+      </button>
+      <div class="answer-label" style="margin-top:16px">Example (JP)</div>
+      <div class="answer-text" id="monoExampleJp" style="color:var(--text-light)"></div>
+    </div>
+
+    <div class="score-buttons" id="monoScoreButtons" style="display:none">
+      <button class="score-btn good" onclick="scoreMonologue('good')">&#9989; Good</button>
+      <button class="score-btn ok" onclick="scoreMonologue('ok')">&#128260; OK</button>
+      <button class="score-btn review" onclick="scoreMonologue('review')">&#128683; Review</button>
+    </div>
+
+    <button class="next-btn" id="monoNextBtn" onclick="nextMonologueTopic()">
+      Next Topic &#8594;
+    </button>
+  </div>
+
+  <!-- HISTORY SCREEN -->
+  <div class="history-screen" id="historyScreen">
+    <h2 style="margin: 16px 0 8px; font-size: 16px;">Practice History</h2>
+    <div id="historyList"></div>
+    <h2 style="margin: 16px 0 8px; font-size: 16px;">Templates to Review</h2>
+    <div id="reviewList"></div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav" id="bottomNav">
+  <div class="nav-item active" onclick="goHome()">
+    <span class="nav-icon">&#127968;</span>Home
+  </div>
+  <div class="nav-item" onclick="startTemplate()">
+    <span class="nav-icon">&#9997;&#65039;</span>Template
+  </div>
+  <div class="nav-item" onclick="startMonologue()">
+    <span class="nav-icon">&#128483;&#65039;</span>Monologue
+  </div>
+  <div class="nav-item" onclick="showHistory()">
+    <span class="nav-icon">&#128200;</span>History
+  </div>
+</div>
+
+<script src="data/templates.js"></script>
+<script src="data/templates_51_100.js"></script>
+<script src="data/monologue.js"></script>
+<script>
+// ============================
+// State
+// ============================
+let allTemplates = [];
+let currentMode = 'home';
+let currentQuestions = [];
+let currentQuestionIndex = 0;
+let currentMonologueIndex = 0;
+let isRecording = false;
+let recognition = null;
+let monoTimer = null;
+let monoTimeLeft = 60;
+let monoTranscriptText = '';
+
+// ============================
+// Init
+// ============================
+window.addEventListener('DOMContentLoaded', () => {
+  // Merge templates
+  if (typeof TEMPLATES !== 'undefined' && typeof TEMPLATES_51_100 !== 'undefined') {
+    allTemplates = [...TEMPLATES, ...TEMPLATES_51_100];
+  } else if (typeof TEMPLATES !== 'undefined') {
+    allTemplates = TEMPLATES;
+  }
+
+  // Check Speech API
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    document.getElementById('noSpeechWarning').style.display = 'block';
+  }
+
+  // Build template reference list
+  buildTemplateRefList();
+  updateHomeStats();
+});
+
+// ============================
+// Navigation
+// ============================
+function goHome() {
+  stopRecording();
+  clearMonoTimer();
+  showScreen('home');
+}
+
+function showScreen(screen) {
+  currentMode = screen;
+  document.getElementById('homeScreen').style.display = screen === 'home' ? 'block' : 'none';
+  document.getElementById('templateScreen').style.display = screen === 'template' ? 'block' : 'none';
+  document.getElementById('monologueScreen').style.display = screen === 'monologue' ? 'block' : 'none';
+  document.getElementById('historyScreen').style.display = screen === 'history' ? 'block' : 'none';
+
+  const backBtn = document.getElementById('backBtn');
+  backBtn.style.display = screen === 'home' ? 'none' : 'block';
+
+  const titles = { home: 'English Speaking Practice', template: 'Template Practice', monologue: 'Monologue Practice', history: 'History & Progress' };
+  document.getElementById('headerTitle').textContent = titles[screen] || '';
+
+  // Update nav
+  document.querySelectorAll('.nav-item').forEach((item, i) => {
+    const screens = ['home', 'template', 'monologue', 'history'];
+    item.classList.toggle('active', screens[i] === screen);
+  });
+}
+
+// ============================
+// Template Practice
+// ============================
+function startTemplate() {
+  if (allTemplates.length === 0) {
+    alert('Template data is still loading. Please wait a moment.');
+    return;
+  }
+  // Pick 5 random questions from random templates
+  currentQuestions = [];
+  const shuffled = [...allTemplates].sort(() => Math.random() - 0.5);
+  for (let i = 0; i < Math.min(5, shuffled.length); i++) {
+    const t = shuffled[i];
+    if (t.questions && t.questions.length > 0) {
+      const q = t.questions[Math.floor(Math.random() * t.questions.length)];
+      currentQuestions.push({ ...q, templateId: t.id, template: t.template, category: t.category, meaning: t.meaning });
+    }
+  }
+  currentQuestionIndex = 0;
+  showScreen('template');
+  showTemplateQuestion();
+}
+
+function showTemplateQuestion() {
+  if (currentQuestionIndex >= currentQuestions.length) {
+    alert('Session complete! Great work!');
+    goHome();
+    return;
+  }
+  const q = currentQuestions[currentQuestionIndex];
+  document.getElementById('tplQuestionNum').textContent = `Question ${currentQuestionIndex + 1} / ${currentQuestions.length}`;
+  document.getElementById('tplQuestionText').textContent = q.jp;
+  document.getElementById('tplHint').style.display = 'none';
+  document.getElementById('tplRecResult').style.display = 'none';
+  document.getElementById('tplRecResult').textContent = '';
+  document.getElementById('tplRecResult').classList.remove('has-text');
+  document.getElementById('tplTextInput').value = '';
+  document.getElementById('tplAnswer').style.display = 'none';
+  document.getElementById('tplShowAnswer').style.display = 'block';
+  document.getElementById('tplScoreButtons').style.display = 'none';
+  document.getElementById('tplNextBtn').style.display = 'none';
+}
+
+function showTemplateAnswer() {
+  const q = currentQuestions[currentQuestionIndex];
+  document.getElementById('tplAnswerText').textContent = q.en;
+  document.getElementById('tplAnswerTemplate').textContent = `Template #${q.templateId}: ${q.template} (${q.meaning})`;
+  document.getElementById('tplAnswer').style.display = 'block';
+  document.getElementById('tplShowAnswer').style.display = 'none';
+  document.getElementById('tplScoreButtons').style.display = 'flex';
+}
+
+function scoreTemplate(score) {
+  const q = currentQuestions[currentQuestionIndex];
+  const userAnswer = inputModes.template === 'text'
+    ? document.getElementById('tplTextInput').value
+    : document.getElementById('tplRecResult').textContent;
+  saveResult('template', {
+    templateId: q.templateId,
+    template: q.template,
+    jp: q.jp,
+    en: q.en,
+    userAnswer: userAnswer,
+    score: score,
+    date: new Date().toISOString()
+  });
+
+  document.querySelectorAll('#tplScoreButtons .score-btn').forEach(btn => btn.classList.remove('selected'));
+  event.target.classList.add('selected');
+  document.getElementById('tplNextBtn').style.display = 'block';
+}
+
+function nextTemplateQuestion() {
+  stopRecording();
+  currentQuestionIndex++;
+  showTemplateQuestion();
+}
+
+// ============================
+// Monologue Practice
+// ============================
+function startMonologue() {
+  if (typeof MONOLOGUE_TOPICS === 'undefined' || MONOLOGUE_TOPICS.length === 0) {
+    alert('Monologue data is still loading. Please wait a moment.');
+    return;
+  }
+  currentMonologueIndex = Math.floor(Math.random() * MONOLOGUE_TOPICS.length);
+  showScreen('monologue');
+  showMonologueTopic();
+}
+
+function showMonologueTopic() {
+  const t = MONOLOGUE_TOPICS[currentMonologueIndex];
+  document.getElementById('monoTopicNum').textContent = `Topic ${t.id} / 100 - ${t.category}`;
+  document.getElementById('monoTopicEn').textContent = t.topic;
+  document.getElementById('monoTopicJp').textContent = t.topicJp;
+  document.getElementById('monoTopicJp').style.display = 'block';
+  document.getElementById('monoTimer').textContent = '1:00';
+  document.getElementById('monoTimer').className = 'timer-display';
+  document.getElementById('monoTranscript').textContent = 'Your speech will appear here...';
+  document.getElementById('monoTranscript').classList.remove('active');
+  document.getElementById('monoTextInput').value = '';
+  document.getElementById('monoShowExample').style.display = 'none';
+  document.getElementById('monoExample').style.display = 'none';
+  document.getElementById('monoScoreButtons').style.display = 'none';
+  document.getElementById('monoNextBtn').style.display = 'none';
+  document.getElementById('monoMicLabel').textContent = 'Tap to start (1 min)';
+  monoTimeLeft = 60;
+  monoTranscriptText = '';
+  clearMonoTimer();
+}
+
+function startMonoTimer() {
+  monoTimeLeft = 60;
+  monoTimer = setInterval(() => {
+    monoTimeLeft--;
+    const min = Math.floor(monoTimeLeft / 60);
+    const sec = monoTimeLeft % 60;
+    const display = document.getElementById('monoTimer');
+    display.textContent = `${min}:${sec.toString().padStart(2, '0')}`;
+
+    if (monoTimeLeft <= 10) display.className = 'timer-display danger';
+    else if (monoTimeLeft <= 20) display.className = 'timer-display warning';
+
+    if (monoTimeLeft <= 0) {
+      clearMonoTimer();
+      stopRecording();
+      document.getElementById('monoMicLabel').textContent = 'Time is up!';
+      document.getElementById('monoShowExample').style.display = 'block';
+    }
+  }, 1000);
+}
+
+function clearMonoTimer() {
+  if (monoTimer) { clearInterval(monoTimer); monoTimer = null; }
+}
+
+function showMonologueExample() {
+  const t = MONOLOGUE_TOPICS[currentMonologueIndex];
+  document.getElementById('monoExampleEn').textContent = t.exampleEn;
+  document.getElementById('monoExampleJp').textContent = t.exampleJp;
+  document.getElementById('monoExample').style.display = 'block';
+  document.getElementById('monoShowExample').style.display = 'none';
+  document.getElementById('monoScoreButtons').style.display = 'flex';
+}
+
+function scoreMonologue(score) {
+  const t = MONOLOGUE_TOPICS[currentMonologueIndex];
+  const transcript = inputModes.monologue === 'text'
+    ? document.getElementById('monoTextInput').value
+    : monoTranscriptText;
+  saveResult('monologue', {
+    topicId: t.id,
+    topic: t.topic,
+    transcript: transcript,
+    score: score,
+    date: new Date().toISOString()
+  });
+
+  document.querySelectorAll('#monoScoreButtons .score-btn').forEach(btn => btn.classList.remove('selected'));
+  event.target.classList.add('selected');
+  document.getElementById('monoNextBtn').style.display = 'block';
+}
+
+function nextMonologueTopic() {
+  stopRecording();
+  clearMonoTimer();
+  currentMonologueIndex = Math.floor(Math.random() * MONOLOGUE_TOPICS.length);
+  showMonologueTopic();
+}
+
+// ============================
+// Input Mode Toggle
+// ============================
+let inputModes = { template: 'voice', monologue: 'voice' };
+
+function setInputMode(screen, mode) {
+  inputModes[screen] = mode;
+  const prefix = screen === 'template' ? 'tpl' : 'mono';
+
+  // Toggle button styles
+  document.getElementById(`${prefix}VoiceMode`).classList.toggle('active', mode === 'voice');
+  document.getElementById(`${prefix}TextMode`).classList.toggle('active', mode === 'text');
+
+  // Toggle areas
+  document.getElementById(`${prefix}MicArea`).style.display = mode === 'voice' ? 'block' : 'none';
+  document.getElementById(`${prefix}TextArea`).style.display = mode === 'text' ? 'block' : 'none';
+
+  if (screen === 'template') {
+    document.getElementById('tplRecResult').style.display = mode === 'voice' ? 'none' : 'none';
+  } else {
+    document.getElementById('monoTranscript').style.display = mode === 'voice' ? 'block' : 'none';
+    if (mode === 'text') {
+      // In text mode for monologue, hide timer
+      document.getElementById('monoTimer').style.display = 'none';
+    } else {
+      document.getElementById('monoTimer').style.display = 'block';
+    }
+  }
+
+  // Stop recording if switching to text
+  if (mode === 'text' && isRecording) stopRecording();
+}
+
+// ============================
+// Speech Recognition
+// ============================
+function toggleRecording(mode) {
+  if (isRecording) {
+    stopRecording();
+  } else {
+    startRecording(mode);
+  }
+}
+
+function startRecording(mode) {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert('Speech recognition is not supported in this browser. Please use Chrome.');
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.lang = 'en-US';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  const micBtn = document.getElementById(mode === 'template' ? 'tplMicBtn' : 'monoMicBtn');
+  micBtn.classList.add('recording');
+  isRecording = true;
+
+  if (mode === 'template') {
+    document.getElementById('tplRecResult').style.display = 'block';
+    document.getElementById('tplRecResult').textContent = 'Listening...';
+  } else {
+    document.getElementById('monoTranscript').classList.add('active');
+    document.getElementById('monoMicLabel').textContent = 'Recording... tap to stop';
+    if (!monoTimer) startMonoTimer();
+  }
+
+  let finalTranscript = '';
+
+  recognition.onresult = (event) => {
+    let interimTranscript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      if (event.results[i].isFinal) {
+        finalTranscript += event.results[i][0].transcript + ' ';
+      } else {
+        interimTranscript += event.results[i][0].transcript;
+      }
+    }
+
+    if (mode === 'template') {
+      const el = document.getElementById('tplRecResult');
+      el.textContent = finalTranscript + interimTranscript;
+      el.classList.add('has-text');
+    } else {
+      monoTranscriptText = finalTranscript + interimTranscript;
+      document.getElementById('monoTranscript').textContent = monoTranscriptText;
+    }
+  };
+
+  recognition.onerror = (event) => {
+    console.error('Speech recognition error:', event.error);
+    if (event.error === 'not-allowed') {
+      alert('Microphone access denied. Please allow microphone access in browser settings.');
+    }
+    stopRecording();
+  };
+
+  recognition.onend = () => {
+    if (isRecording) {
+      // Restart if still recording (continuous mode can stop unexpectedly)
+      try { recognition.start(); } catch(e) {}
+    }
+  };
+
+  recognition.start();
+}
+
+function stopRecording() {
+  isRecording = false;
+  if (recognition) {
+    try { recognition.stop(); } catch(e) {}
+    recognition = null;
+  }
+  document.querySelectorAll('.mic-btn').forEach(btn => btn.classList.remove('recording'));
+
+  if (currentMode === 'monologue') {
+    document.getElementById('monoMicLabel').textContent = 'Tap to speak again';
+    if (monoTranscriptText) {
+      document.getElementById('monoShowExample').style.display = 'block';
+    }
+  }
+}
+
+// ============================
+// Text-to-Speech
+// ============================
+function speakAnswer(mode) {
+  const text = mode === 'template'
+    ? document.getElementById('tplAnswerText').textContent
+    : document.getElementById('monoExampleEn').textContent;
+
+  if (!text) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'en-US';
+  utterance.rate = 0.9;
+
+  // Try to use a natural voice
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find(v => v.lang.startsWith('en') && v.name.includes('Samantha')) ||
+                    voices.find(v => v.lang.startsWith('en-US'));
+  if (preferred) utterance.voice = preferred;
+
+  window.speechSynthesis.speak(utterance);
+}
+
+// Load voices
+if (window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = () => {};
+}
+
+// ============================
+// Template Reference List
+// ============================
+function buildTemplateRefList() {
+  const container = document.getElementById('templateList');
+  if (allTemplates.length === 0) {
+    container.innerHTML = '<p style="padding:12px;color:var(--text-light)">Loading...</p>';
+    return;
+  }
+  let html = '<table><tr><th>#</th><th>Category</th><th>Template</th><th>Meaning</th></tr>';
+  allTemplates.forEach(t => {
+    html += `<tr><td>${t.id}</td><td>${t.category}</td><td>${t.template}</td><td>${t.meaning}</td></tr>`;
+  });
+  html += '</table>';
+  container.innerHTML = html;
+}
+
+function toggleTemplateList() {
+  document.getElementById('templateList').classList.toggle('show');
+}
+
+// ============================
+// LocalStorage
+// ============================
+function saveResult(type, data) {
+  const key = 'english_practice_history';
+  const history = JSON.parse(localStorage.getItem(key) || '[]');
+  history.push({ type, ...data });
+  localStorage.setItem(key, JSON.stringify(history));
+  updateHomeStats();
+}
+
+function getHistory() {
+  return JSON.parse(localStorage.getItem('english_practice_history') || '[]');
+}
+
+function updateHomeStats() {
+  const history = getHistory();
+  const today = new Date().toISOString().slice(0, 10);
+  const todayItems = history.filter(h => h.date && h.date.slice(0, 10) === today);
+  document.getElementById('todayCount').textContent = todayItems.length;
+  document.getElementById('totalCount').textContent = history.length;
+
+  // Calculate streak
+  let streak = 0;
+  const dates = [...new Set(history.map(h => h.date ? h.date.slice(0, 10) : ''))].sort().reverse();
+  const d = new Date();
+  for (let i = 0; i < 365; i++) {
+    const dateStr = d.toISOString().slice(0, 10);
+    if (dates.includes(dateStr)) {
+      streak++;
+      d.setDate(d.getDate() - 1);
+    } else if (i === 0) {
+      // Today might not have practice yet, check yesterday
+      d.setDate(d.getDate() - 1);
+      continue;
+    } else {
+      break;
+    }
+  }
+  document.getElementById('streakCount').textContent = streak;
+}
+
+// ============================
+// History Screen
+// ============================
+function showHistory() {
+  showScreen('history');
+  const history = getHistory();
+
+  // Group by date
+  const byDate = {};
+  history.forEach(h => {
+    const date = h.date ? h.date.slice(0, 10) : 'Unknown';
+    if (!byDate[date]) byDate[date] = [];
+    byDate[date].push(h);
+  });
+
+  const historyList = document.getElementById('historyList');
+  const dates = Object.keys(byDate).sort().reverse();
+
+  if (dates.length === 0) {
+    historyList.innerHTML = '<div class="history-day"><p style="color:var(--text-light)">No practice history yet. Start practicing!</p></div>';
+  } else {
+    historyList.innerHTML = dates.slice(0, 14).map(date => {
+      const items = byDate[date];
+      const good = items.filter(i => i.score === 'good').length;
+      const ok = items.filter(i => i.score === 'ok').length;
+      const review = items.filter(i => i.score === 'review').length;
+      const total = items.length;
+      return `
+        <div class="history-day">
+          <div class="history-date">${date}</div>
+          <div class="history-stats">
+            <span>Total: ${total}</span>
+            <span style="color:var(--success)">Good: ${good}</span>
+            <span style="color:var(--warning)">OK: ${ok}</span>
+            <span style="color:var(--danger)">Review: ${review}</span>
+          </div>
+          <div class="history-bar" style="display:flex">
+            ${good ? `<div class="history-bar-fill good" style="width:${good/total*100}%"></div>` : ''}
+            ${ok ? `<div class="history-bar-fill ok" style="width:${ok/total*100}%"></div>` : ''}
+            ${review ? `<div class="history-bar-fill review" style="width:${review/total*100}%"></div>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // Review list - templates marked as "review"
+  const reviewItems = history.filter(h => h.type === 'template' && h.score === 'review');
+  const reviewList = document.getElementById('reviewList');
+  if (reviewItems.length === 0) {
+    reviewList.innerHTML = '<div class="history-day"><p style="color:var(--text-light)">No templates marked for review.</p></div>';
+  } else {
+    const byTemplate = {};
+    reviewItems.forEach(r => {
+      if (!byTemplate[r.templateId]) byTemplate[r.templateId] = { template: r.template, count: 0 };
+      byTemplate[r.templateId].count++;
+    });
+    reviewList.innerHTML = Object.entries(byTemplate)
+      .sort((a, b) => b[1].count - a[1].count)
+      .map(([id, data]) => `
+        <div class="history-day" style="padding:12px">
+          <span style="color:var(--danger);font-weight:600">#${id}</span>
+          ${data.template}
+          <span style="float:right;color:var(--text-light)">${data.count}x</span>
+        </div>
+      `).join('');
+  }
+}
+</script>
+</body>
+</html>
