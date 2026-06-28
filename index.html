@@ -535,16 +535,10 @@ header .back-btn {
       <div class="question-card">
         <div class="question-number">Vocabulary</div>
         <div class="mode-desc" style="font-size:14px;line-height:1.6">
-          JP→EN の想起ドリル。同梱の <b>Business set</b> は上級ビジネス語（B2–C1 / TOEIC 800–900帯）。
-          register で絞り込めます：🗣️話す語／🔁句動詞・定型／📖読む語。<br>
+          JP→EN の想起ドリル。同梱の <b>Business set</b> は実務で使える上級ビジネス語（B2–C1 / TOEIC 800–900帯）。
+          平易・明快な語に絞っています（難語の同義語は除外）。<br>
           自分の語（Distinction 2000 の章など）は「My words」に一括登録して使えます（端末内にのみ保存）。
         </div>
-      </div>
-      <div class="input-mode-toggle" id="vocFilterRow" style="flex-wrap:wrap">
-        <button class="input-mode-btn" data-filter="all" onclick="setVocabFilter('all')">All</button>
-        <button class="input-mode-btn active" data-filter="speak" onclick="setVocabFilter('speak')">🗣️ Speak</button>
-        <button class="input-mode-btn" data-filter="phrase" onclick="setVocabFilter('phrase')">🔁 Phrases</button>
-        <button class="input-mode-btn" data-filter="read" onclick="setVocabFilter('read')">📖 Read</button>
       </div>
       <button class="next-btn" style="display:block" onclick="startVocabQuiz('sample')">Start quiz — Business set (<span id="vocSampleCount">0</span>)</button>
       <button class="next-btn" style="display:block;margin-top:8px" id="vocMyBtn" onclick="startVocabQuiz('mine')">Start quiz — My words (<span id="vocMineCount">0</span>)</button>
@@ -689,9 +683,6 @@ header .back-btn {
 <script src="data/templates_51_100.js"></script>
 <script src="data/monologue.js"></script>
 <script src="data/vocab_sample.js"></script>
-<script src="data/vocab_more1.js"></script>
-<script src="data/vocab_more2.js"></script>
-<script src="data/vocab_more3.js"></script>
 <script src="data/progos.js"></script>
 <script>
 // ============================
@@ -1321,7 +1312,7 @@ function showVocabHome() {
   document.getElementById('vocabHome').style.display = 'block';
   document.getElementById('vocabManage').style.display = 'none';
   document.getElementById('vocabQuiz').style.display = 'none';
-  setVocabFilter(vocabFilter);
+  document.getElementById('vocSampleCount').textContent = (typeof VOCAB_SAMPLE !== 'undefined' ? VOCAB_SAMPLE.length : 0);
   const mine = getMyVocab();
   document.getElementById('vocMineCount').textContent = mine.length;
   document.getElementById('vocMyBtn').style.opacity = mine.length ? '1' : '0.5';
@@ -1348,8 +1339,8 @@ function saveMyVocab() {
 }
 
 function startVocabQuiz(source) {
-  const pool = source === 'mine' ? getMyVocab() : filteredSample();
-  if (!pool.length) { alert(source === 'mine' ? 'No words yet. Tap "Manage my words" to add some.' : 'No words in this filter.'); return; }
+  const pool = source === 'mine' ? getMyVocab() : (typeof VOCAB_SAMPLE !== 'undefined' ? VOCAB_SAMPLE : []);
+  if (!pool.length) { alert(source === 'mine' ? 'No words yet. Tap "Manage my words" to add some.' : 'No words available.'); return; }
   vocabList = [...pool].sort(() => Math.random() - 0.5).slice(0, Math.min(5, pool.length));
   vocabIndex = 0;
   document.getElementById('vocabHome').style.display = 'none';
