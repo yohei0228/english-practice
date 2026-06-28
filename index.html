@@ -1375,7 +1375,9 @@ function showVocabAnswer() {
   const w = vocabList[vocabIndex];
   const badge = w.reg ? `  —  ${REG_LABEL[w.reg] || ''}` : '';
   document.getElementById('vocAnswerText').textContent = w.term + (w.pos ? ` (${w.pos})` : '') + badge;
-  document.getElementById('vocAnswerExample').textContent = w.exampleEn || '';
+  const ex = w.exampleEn ? `<div>${w.exampleEn}</div>` : '';
+  const altLine = w.alt ? `<div style="margin-top:8px;color:var(--primary)">やさしい言い換え: <b>${w.alt}</b>（平易な語で言えればOK。この語は一段上の言い方）</div>` : '';
+  document.getElementById('vocAnswerExample').innerHTML = ex + altLine;
   document.getElementById('vocAnswerWord').textContent = w.term;
   document.getElementById('vocAnswer').style.display = 'block';
   document.getElementById('vocShowAnswer').style.display = 'none';
