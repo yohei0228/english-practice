@@ -299,12 +299,12 @@ header .back-btn {
   z-index: 100;
 }
 .nav-item {
-  flex: 1; text-align: center; padding: 8px;
+  flex: 1; text-align: center; padding: 8px 2px;
   cursor: pointer; color: var(--text-light);
-  font-size: 11px; transition: color 0.2s;
+  font-size: 10px; transition: color 0.2s;
 }
 .nav-item.active { color: var(--primary); }
-.nav-item .nav-icon { font-size: 22px; display: block; margin-bottom: 2px; }
+.nav-item .nav-icon { font-size: 20px; display: block; margin-bottom: 2px; }
 
 /* Responsive */
 @media (max-width: 400px) {
@@ -370,6 +370,12 @@ header .back-btn {
       </div>
     </div>
 
+    <div class="mode-card" onclick="startVocab()">
+      <div class="mode-icon">&#128218;</div>
+      <div class="mode-title">Vocabulary</div>
+      <div class="mode-desc">Recall words JP→EN. Add your own (e.g. Distinction 2000 chapters) or use the sample set.</div>
+    </div>
+
     <div class="mode-card" onclick="startTemplate()">
       <div class="mode-icon">&#9997;&#65039;</div>
       <div class="mode-title">Template Practice</div>
@@ -380,6 +386,12 @@ header .back-btn {
       <div class="mode-icon">&#128483;&#65039;</div>
       <div class="mode-title">Monologue Practice</div>
       <div class="mode-desc">100 speaking topics - 1 minute free speech with IELTS/TOEFL style topics.</div>
+    </div>
+
+    <div class="mode-card" onclick="startProgos()">
+      <div class="mode-icon">&#127891;</div>
+      <div class="mode-title">PROGOS B2</div>
+      <div class="mode-desc">Test-format practice. Part 1-5: Interview, Read Aloud, Presentation, Graph, Role Play.</div>
     </div>
 
     <div class="mode-card" onclick="showHistory()">
@@ -515,6 +527,140 @@ header .back-btn {
     <h2 style="margin: 16px 0 8px; font-size: 16px;">Templates to Review</h2>
     <div id="reviewList"></div>
   </div>
+
+  <!-- VOCABULARY SCREEN -->
+  <div class="practice-screen" id="vocabScreen">
+    <!-- Vocab home -->
+    <div id="vocabHome">
+      <div class="question-card">
+        <div class="question-number">Vocabulary</div>
+        <div class="mode-desc" style="font-size:14px;line-height:1.6">
+          JP→EN の想起ドリル。同梱の <b>Business set</b> は上級ビジネス語（B2–C1 / TOEIC 800–900帯）。
+          register で絞り込めます：🗣️話す語／🔁句動詞・定型／📖読む語。<br>
+          自分の語（Distinction 2000 の章など）は「My words」に一括登録して使えます（端末内にのみ保存）。
+        </div>
+      </div>
+      <div class="input-mode-toggle" id="vocFilterRow" style="flex-wrap:wrap">
+        <button class="input-mode-btn" data-filter="all" onclick="setVocabFilter('all')">All</button>
+        <button class="input-mode-btn active" data-filter="speak" onclick="setVocabFilter('speak')">🗣️ Speak</button>
+        <button class="input-mode-btn" data-filter="phrase" onclick="setVocabFilter('phrase')">🔁 Phrases</button>
+        <button class="input-mode-btn" data-filter="read" onclick="setVocabFilter('read')">📖 Read</button>
+      </div>
+      <button class="next-btn" style="display:block" onclick="startVocabQuiz('sample')">Start quiz — Business set (<span id="vocSampleCount">0</span>)</button>
+      <button class="next-btn" style="display:block;margin-top:8px" id="vocMyBtn" onclick="startVocabQuiz('mine')">Start quiz — My words (<span id="vocMineCount">0</span>)</button>
+      <button class="show-answer-btn" style="margin-top:8px" onclick="showVocabManage()">&#9881;&#65039; Manage my words</button>
+    </div>
+
+    <!-- Vocab manage -->
+    <div id="vocabManage" style="display:none">
+      <div class="question-card">
+        <div class="question-number">My Words</div>
+        <div class="mode-desc" style="font-size:13px;line-height:1.6">
+          1行に1語。<b>何百語でも一括で貼り付けてOK</b>。区切りは <code>|</code> かタブ（Excel/スプレッドシートの列をそのまま貼れます）。<br>
+          形式: <code>term | 日本語の意味 | 例文(任意)</code><br>
+          例: <code>allocate | 割り当てる | We allocate budget to marketing.</code>
+        </div>
+      </div>
+      <div class="text-input-area" style="display:block">
+        <textarea id="vocManageInput" placeholder="allocate | 割り当てる | We allocate budget to marketing.&#10;mitigate | 軽減する&#10;...（何百行でも貼り付け可）" style="min-height:220px"></textarea>
+      </div>
+      <button class="next-btn" style="display:block" onclick="saveMyVocab()">Save</button>
+      <button class="show-answer-btn" style="margin-top:8px" onclick="showVocabHome()">Back</button>
+    </div>
+
+    <!-- Vocab quiz -->
+    <div id="vocabQuiz" style="display:none">
+      <div class="question-card">
+        <div class="question-number" id="vocQNum">Word 1 / 5</div>
+        <div class="question-text" id="vocQMeaning"></div>
+        <div class="question-hint" id="vocQExample" style="display:none"></div>
+      </div>
+
+      <div class="input-mode-toggle">
+        <button class="input-mode-btn active" id="vocVoiceMode" onclick="setVocabInput('voice')">&#127908; Voice</button>
+        <button class="input-mode-btn" id="vocTextMode" onclick="setVocabInput('text')">&#9997;&#65039; Text</button>
+      </div>
+      <div class="mic-area" id="vocMicArea">
+        <button class="mic-btn" id="vocMicBtn" onclick="toggleVocabRec()">&#127908;</button>
+        <div class="mic-label">Say the English word</div>
+      </div>
+      <div class="text-input-area" id="vocTextAreaWrap">
+        <textarea id="vocTextInput" placeholder="Type the English word..." style="min-height:60px"></textarea>
+      </div>
+      <div class="recognition-result" id="vocRecResult"></div>
+
+      <button class="show-answer-btn" id="vocShowAnswer" onclick="showVocabAnswer()">Show Answer</button>
+      <div class="answer-section" id="vocAnswer">
+        <div class="answer-label">Answer</div>
+        <div class="answer-text" id="vocAnswerText"></div>
+        <div class="answer-template" id="vocAnswerExample"></div>
+        <button class="speak-btn" onclick="speakText(document.getElementById('vocAnswerWord').textContent)">&#128264; Listen</button>
+        <span id="vocAnswerWord" style="display:none"></span>
+      </div>
+      <div class="score-buttons" id="vocScoreButtons" style="display:none">
+        <button class="score-btn good" onclick="scoreVocab('good', event)">&#9989; Good</button>
+        <button class="score-btn ok" onclick="scoreVocab('ok', event)">&#128260; OK</button>
+        <button class="score-btn review" onclick="scoreVocab('review', event)">&#128683; Review</button>
+      </div>
+      <button class="next-btn" id="vocNextBtn" onclick="nextVocab()">Next &#8594;</button>
+    </div>
+  </div>
+
+  <!-- PROGOS SCREEN -->
+  <div class="practice-screen" id="progosScreen">
+    <!-- Part selector -->
+    <div id="progosHome">
+      <div class="question-card">
+        <div class="question-number">PROGOS B2</div>
+        <div class="mode-desc" style="font-size:13px">出題順に5パート。Partを選んで本番形式で練習します。</div>
+      </div>
+      <div id="progosPartList"></div>
+    </div>
+
+    <!-- Part practice -->
+    <div id="progosPractice" style="display:none">
+      <div class="question-card">
+        <div class="question-number" id="progQNum">Part</div>
+        <div class="question-text" id="progQPrompt" style="font-size:18px"></div>
+        <div class="question-hint" id="progQPoints" style="display:none"></div>
+        <div class="answer-template" id="progQFormat" style="margin-top:12px"></div>
+      </div>
+
+      <div class="timer-display" id="progTimer" style="display:none">0:40</div>
+      <div class="mic-label" id="progTimerLabel" style="text-align:center;display:none"></div>
+
+      <div class="input-mode-toggle">
+        <button class="input-mode-btn active" id="progVoiceMode" onclick="setProgosInput('voice')">&#127908; Voice</button>
+        <button class="input-mode-btn" id="progTextMode" onclick="setProgosInput('text')">&#9997;&#65039; Text</button>
+      </div>
+      <div class="mic-area" id="progMicArea">
+        <button class="mic-btn" id="progMicBtn" onclick="toggleProgosRec()">&#127908;</button>
+        <div class="mic-label" id="progMicLabel">Tap to start</div>
+      </div>
+      <div class="text-input-area" id="progTextAreaWrap">
+        <textarea id="progTextInput" placeholder="Type your answer here..." style="min-height:100px"></textarea>
+      </div>
+      <div class="transcript-area" id="progTranscript">Your speech will appear here...</div>
+
+      <button class="speak-btn" id="progListenBtn" onclick="speakText(document.getElementById('progReadText').textContent)" style="display:none">&#128264; Listen to model</button>
+      <span id="progReadText" style="display:none"></span>
+
+      <button class="show-answer-btn" id="progShowModel" onclick="showProgosModel()" style="display:none">Show Model Answer</button>
+      <div class="answer-section" id="progModel">
+        <div class="answer-label">Model</div>
+        <div class="answer-text" id="progModelText"></div>
+        <button class="speak-btn" onclick="speakText(document.getElementById('progModelText').textContent)">&#128264; Listen</button>
+      </div>
+
+      <div class="score-buttons" id="progScoreButtons" style="display:none">
+        <button class="score-btn good" onclick="scoreProgos('good', event)">&#9989; Good</button>
+        <button class="score-btn ok" onclick="scoreProgos('ok', event)">&#128260; OK</button>
+        <button class="score-btn review" onclick="scoreProgos('review', event)">&#128683; Review</button>
+      </div>
+      <button class="next-btn" id="progNextBtn" onclick="nextProgos()">Next &#8594;</button>
+      <button class="show-answer-btn" style="margin-top:8px" onclick="progosBackToParts()">Back to parts</button>
+    </div>
+  </div>
 </div>
 
 <!-- Bottom Nav -->
@@ -522,11 +668,17 @@ header .back-btn {
   <div class="nav-item active" onclick="goHome()">
     <span class="nav-icon">&#127968;</span>Home
   </div>
+  <div class="nav-item" onclick="startVocab()">
+    <span class="nav-icon">&#128218;</span>Vocab
+  </div>
   <div class="nav-item" onclick="startTemplate()">
     <span class="nav-icon">&#9997;&#65039;</span>Template
   </div>
   <div class="nav-item" onclick="startMonologue()">
-    <span class="nav-icon">&#128483;&#65039;</span>Monologue
+    <span class="nav-icon">&#128483;&#65039;</span>Mono
+  </div>
+  <div class="nav-item" onclick="startProgos()">
+    <span class="nav-icon">&#127891;</span>PROGOS
   </div>
   <div class="nav-item" onclick="showHistory()">
     <span class="nav-icon">&#128200;</span>History
@@ -536,6 +688,11 @@ header .back-btn {
 <script src="data/templates.js"></script>
 <script src="data/templates_51_100.js"></script>
 <script src="data/monologue.js"></script>
+<script src="data/vocab_sample.js"></script>
+<script src="data/vocab_more1.js"></script>
+<script src="data/vocab_more2.js"></script>
+<script src="data/vocab_more3.js"></script>
+<script src="data/progos.js"></script>
 <script>
 // ============================
 // State
@@ -578,6 +735,9 @@ window.addEventListener('DOMContentLoaded', () => {
 function goHome() {
   stopRecording();
   clearMonoTimer();
+  stopVocabRec();
+  stopProgosRec();
+  clearProgTimer();
   showScreen('home');
 }
 
@@ -587,16 +747,18 @@ function showScreen(screen) {
   document.getElementById('templateScreen').style.display = screen === 'template' ? 'block' : 'none';
   document.getElementById('monologueScreen').style.display = screen === 'monologue' ? 'block' : 'none';
   document.getElementById('historyScreen').style.display = screen === 'history' ? 'block' : 'none';
+  document.getElementById('vocabScreen').style.display = screen === 'vocab' ? 'block' : 'none';
+  document.getElementById('progosScreen').style.display = screen === 'progos' ? 'block' : 'none';
 
   const backBtn = document.getElementById('backBtn');
   backBtn.style.display = screen === 'home' ? 'none' : 'block';
 
-  const titles = { home: 'English Speaking Practice', template: 'Template Practice', monologue: 'Monologue Practice', history: 'History & Progress' };
+  const titles = { home: 'English Speaking Practice', template: 'Template Practice', monologue: 'Monologue Practice', history: 'History & Progress', vocab: 'Vocabulary', progos: 'PROGOS B2' };
   document.getElementById('headerTitle').textContent = titles[screen] || '';
 
   // Update nav
   document.querySelectorAll('.nav-item').forEach((item, i) => {
-    const screens = ['home', 'template', 'monologue', 'history'];
+    const screens = ['home', 'vocab', 'template', 'monologue', 'progos', 'history'];
     item.classList.toggle('active', screens[i] === screen);
   });
 }
@@ -1098,6 +1260,311 @@ function showHistory() {
       `).join('');
   }
 }
+
+// ============================
+// Shared helpers (new)
+// ============================
+function makeRecognizer(onText) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert('Speech recognition is not supported in this browser. Please use Chrome.'); return null; }
+  const r = new SR();
+  r.lang = 'en-US'; r.continuous = true; r.interimResults = true;
+  let finalT = '';
+  r.onresult = (e) => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) finalT += e.results[i][0].transcript + ' ';
+      else interim += e.results[i][0].transcript;
+    }
+    onText(finalT + interim);
+  };
+  r.onerror = (e) => {
+    console.error('Speech recognition error:', e.error);
+    if (e.error === 'not-allowed') alert('Microphone access denied. Please allow microphone access.');
+  };
+  return r;
+}
+
+function speakText(text) {
+  if (!text) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = 0.9;
+  const voices = window.speechSynthesis.getVoices();
+  const pref = voices.find(v => v.lang.startsWith('en') && v.name.includes('Samantha')) || voices.find(v => v.lang.startsWith('en-US'));
+  if (pref) u.voice = pref;
+  window.speechSynthesis.speak(u);
+}
+
+// ============================
+// Vocabulary
+// ============================
+let vocabList = [], vocabIndex = 0, vocabInputMode = 'voice', vocRec = null, vocRecActive = false, vocabFilter = 'speak';
+const REG_LABEL = { speak: '🗣️ Speak', phrase: '🔁 Phrase', read: '📖 Read' };
+
+function getMyVocab() { try { return JSON.parse(localStorage.getItem('english_practice_vocab') || '[]'); } catch (e) { return []; } }
+
+function filteredSample() {
+  const all = (typeof VOCAB_SAMPLE !== 'undefined') ? VOCAB_SAMPLE : [];
+  return vocabFilter === 'all' ? all : all.filter(w => (w.reg || 'speak') === vocabFilter);
+}
+
+function setVocabFilter(f) {
+  vocabFilter = f;
+  document.querySelectorAll('#vocFilterRow .input-mode-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === f));
+  document.getElementById('vocSampleCount').textContent = filteredSample().length;
+}
+
+function startVocab() { showScreen('vocab'); showVocabHome(); }
+
+function showVocabHome() {
+  document.getElementById('vocabHome').style.display = 'block';
+  document.getElementById('vocabManage').style.display = 'none';
+  document.getElementById('vocabQuiz').style.display = 'none';
+  setVocabFilter(vocabFilter);
+  const mine = getMyVocab();
+  document.getElementById('vocMineCount').textContent = mine.length;
+  document.getElementById('vocMyBtn').style.opacity = mine.length ? '1' : '0.5';
+}
+
+function showVocabManage() {
+  document.getElementById('vocabHome').style.display = 'none';
+  document.getElementById('vocabManage').style.display = 'block';
+  document.getElementById('vocabQuiz').style.display = 'none';
+  const mine = getMyVocab();
+  document.getElementById('vocManageInput').value = mine.map(w => `${w.term} | ${w.jp}${w.exampleEn ? (' | ' + w.exampleEn) : ''}`).join('\n');
+}
+
+function saveMyVocab() {
+  const lines = document.getElementById('vocManageInput').value.split('\n').map(l => l.trim()).filter(Boolean);
+  const list = lines.map(l => {
+    const sep = l.indexOf('|') !== -1 ? '|' : (l.indexOf('\t') !== -1 ? '\t' : '|');
+    const p = l.split(sep).map(x => x.trim());
+    return { term: p[0] || '', jp: p[1] || '', exampleEn: p[2] || '' };
+  }).filter(w => w.term && w.jp);
+  localStorage.setItem('english_practice_vocab', JSON.stringify(list));
+  alert(`Saved ${list.length} words.`);
+  showVocabHome();
+}
+
+function startVocabQuiz(source) {
+  const pool = source === 'mine' ? getMyVocab() : filteredSample();
+  if (!pool.length) { alert(source === 'mine' ? 'No words yet. Tap "Manage my words" to add some.' : 'No words in this filter.'); return; }
+  vocabList = [...pool].sort(() => Math.random() - 0.5).slice(0, Math.min(5, pool.length));
+  vocabIndex = 0;
+  document.getElementById('vocabHome').style.display = 'none';
+  document.getElementById('vocabManage').style.display = 'none';
+  document.getElementById('vocabQuiz').style.display = 'block';
+  setVocabInput(vocabInputMode);
+  showVocabWord();
+}
+
+function showVocabWord() {
+  if (vocabIndex >= vocabList.length) { alert('Done! ' + vocabList.length + ' words reviewed.'); showVocabHome(); return; }
+  const w = vocabList[vocabIndex];
+  document.getElementById('vocQNum').textContent = `Word ${vocabIndex + 1} / ${vocabList.length}`;
+  document.getElementById('vocQMeaning').textContent = w.jp;
+  const exEl = document.getElementById('vocQExample');
+  if (w.exampleEn) {
+    const re = new RegExp(w.term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'ig');
+    exEl.textContent = 'Hint: ' + w.exampleEn.replace(re, '_____');
+    exEl.style.display = 'block';
+  } else { exEl.style.display = 'none'; }
+  document.getElementById('vocRecResult').style.display = 'none';
+  document.getElementById('vocRecResult').textContent = '';
+  document.getElementById('vocRecResult').classList.remove('has-text');
+  document.getElementById('vocTextInput').value = '';
+  document.getElementById('vocAnswer').style.display = 'none';
+  document.getElementById('vocShowAnswer').style.display = 'block';
+  document.getElementById('vocScoreButtons').style.display = 'none';
+  document.getElementById('vocNextBtn').style.display = 'none';
+}
+
+function showVocabAnswer() {
+  const w = vocabList[vocabIndex];
+  const badge = w.reg ? `  —  ${REG_LABEL[w.reg] || ''}` : '';
+  document.getElementById('vocAnswerText').textContent = w.term + (w.pos ? ` (${w.pos})` : '') + badge;
+  document.getElementById('vocAnswerExample').textContent = w.exampleEn || '';
+  document.getElementById('vocAnswerWord').textContent = w.term;
+  document.getElementById('vocAnswer').style.display = 'block';
+  document.getElementById('vocShowAnswer').style.display = 'none';
+  document.getElementById('vocScoreButtons').style.display = 'flex';
+}
+
+function scoreVocab(score, e) {
+  const w = vocabList[vocabIndex];
+  saveResult('vocab', { term: w.term, jp: w.jp, score: score, date: new Date().toISOString() });
+  document.querySelectorAll('#vocScoreButtons .score-btn').forEach(b => b.classList.remove('selected'));
+  if (e && e.target) e.target.classList.add('selected');
+  document.getElementById('vocNextBtn').style.display = 'block';
+}
+
+function nextVocab() { stopVocabRec(); vocabIndex++; showVocabWord(); }
+
+function setVocabInput(mode) {
+  vocabInputMode = mode;
+  document.getElementById('vocVoiceMode').classList.toggle('active', mode === 'voice');
+  document.getElementById('vocTextMode').classList.toggle('active', mode === 'text');
+  document.getElementById('vocMicArea').style.display = mode === 'voice' ? 'block' : 'none';
+  document.getElementById('vocTextAreaWrap').style.display = mode === 'text' ? 'block' : 'none';
+  if (mode === 'text') stopVocabRec();
+}
+
+function toggleVocabRec() {
+  if (vocRecActive) { stopVocabRec(); return; }
+  vocRec = makeRecognizer(t => { const el = document.getElementById('vocRecResult'); el.style.display = 'block'; el.textContent = t; el.classList.add('has-text'); });
+  if (!vocRec) return;
+  vocRec.onend = () => { if (vocRecActive) { try { vocRec.start(); } catch (e) {} } };
+  vocRecActive = true;
+  document.getElementById('vocMicBtn').classList.add('recording');
+  const el = document.getElementById('vocRecResult'); el.style.display = 'block'; el.textContent = 'Listening...';
+  vocRec.start();
+}
+
+function stopVocabRec() {
+  vocRecActive = false;
+  if (vocRec) { try { vocRec.stop(); } catch (e) {} vocRec = null; }
+  const b = document.getElementById('vocMicBtn'); if (b) b.classList.remove('recording');
+}
+
+// ============================
+// PROGOS
+// ============================
+let progCurrentPart = null, progItems = [], progIndex = 0, progInputMode = 'voice', progRec = null, progRecActive = false, progTimer = null, progTranscriptText = '';
+
+function startProgos() { showScreen('progos'); renderProgosParts(); progosBackToParts(); }
+
+function renderProgosParts() {
+  const c = document.getElementById('progosPartList');
+  if (typeof PROGOS === 'undefined') { c.innerHTML = '<p style="padding:12px;color:var(--text-light)">Loading...</p>'; return; }
+  c.innerHTML = PROGOS.parts.map(p => `
+    <div class="mode-card" onclick="selectProgosPart('${p.key}')">
+      <div class="mode-icon">${p.icon}</div>
+      <div class="mode-title">${p.title}</div>
+      <div class="mode-desc">${p.format}</div>
+    </div>`).join('');
+}
+
+function progosBackToParts() {
+  stopProgosRec(); clearProgTimer();
+  document.getElementById('progosHome').style.display = 'block';
+  document.getElementById('progosPractice').style.display = 'none';
+}
+
+function selectProgosPart(key) {
+  progCurrentPart = PROGOS.parts.find(p => p.key === key);
+  if (key === 'roleplay') {
+    progItems = [];
+    PROGOS.roleplay.forEach(sc => sc.turns.forEach((t, i) => progItems.push({
+      prompt: (i === 0 ? ('Situation: ' + sc.scenario + '\n\nAlex: ' + t.alex) : ('Alex: ' + t.alex)),
+      points: t.hint, model: t.model
+    })));
+  } else {
+    progItems = (PROGOS[key] || []).slice();
+  }
+  progIndex = 0;
+  document.getElementById('progosHome').style.display = 'none';
+  document.getElementById('progosPractice').style.display = 'block';
+  showProgItem();
+}
+
+function showProgItem() {
+  if (progIndex >= progItems.length) { alert('Part complete!'); progosBackToParts(); return; }
+  const part = progCurrentPart, item = progItems[progIndex];
+  document.getElementById('progQNum').textContent = `${part.title} — ${progIndex + 1} / ${progItems.length}`;
+  document.getElementById('progQPrompt').textContent = part.key === 'graph' ? (item.title + '\n\n' + item.data) : (part.key === 'readaloud' ? item.text : item.prompt);
+  document.getElementById('progQPrompt').style.whiteSpace = 'pre-line';
+  const pts = document.getElementById('progQPoints');
+  if (item.points) { pts.style.display = 'block'; pts.innerHTML = Array.isArray(item.points) ? item.points.map(p => '• ' + p).join('<br>') : item.points; }
+  else { pts.style.display = 'none'; }
+  document.getElementById('progQFormat').textContent = part.format + (part.prep ? `  [Prep ${part.prep}s → Speak ${part.speak}s]` : `  [Speak ${part.speak}s]`);
+  progTranscriptText = '';
+  const tr = document.getElementById('progTranscript'); tr.textContent = 'Your speech will appear here...'; tr.classList.remove('active');
+  document.getElementById('progTextInput').value = '';
+  document.getElementById('progModel').style.display = 'none';
+  document.getElementById('progShowModel').style.display = 'none';
+  document.getElementById('progScoreButtons').style.display = 'none';
+  document.getElementById('progNextBtn').style.display = 'none';
+  document.getElementById('progMicLabel').textContent = 'Tap to start';
+  document.getElementById('progTimer').style.display = 'none';
+  document.getElementById('progTimerLabel').style.display = 'none';
+  document.getElementById('progMicBtn').classList.remove('recording');
+  if (part.key === 'readaloud') { document.getElementById('progReadText').textContent = item.text; document.getElementById('progListenBtn').style.display = 'inline-flex'; }
+  else { document.getElementById('progListenBtn').style.display = 'none'; }
+  setProgosInput(progInputMode);
+}
+
+function setProgosInput(mode) {
+  progInputMode = mode;
+  document.getElementById('progVoiceMode').classList.toggle('active', mode === 'voice');
+  document.getElementById('progTextMode').classList.toggle('active', mode === 'text');
+  document.getElementById('progMicArea').style.display = mode === 'voice' ? 'block' : 'none';
+  document.getElementById('progTextAreaWrap').style.display = mode === 'text' ? 'block' : 'none';
+  document.getElementById('progTranscript').style.display = mode === 'voice' ? 'block' : 'none';
+  document.getElementById('progTimer').style.display = 'none';
+  document.getElementById('progTimerLabel').style.display = 'none';
+  if (mode === 'text') { stopProgosRec(); revealProgAfter(); }
+}
+
+function revealProgAfter() {
+  if (!progCurrentPart) return;
+  if (progCurrentPart.hasModel) document.getElementById('progShowModel').style.display = 'block';
+  else document.getElementById('progScoreButtons').style.display = 'flex';
+}
+
+function toggleProgosRec() {
+  if (progRecActive) { stopProgosRec(); revealProgAfter(); return; }
+  progRec = makeRecognizer(t => { progTranscriptText = t; const tr = document.getElementById('progTranscript'); tr.textContent = t; tr.classList.add('active'); });
+  if (!progRec) return;
+  progRec.onend = () => { if (progRecActive) { try { progRec.start(); } catch (e) {} } };
+  progRecActive = true;
+  document.getElementById('progMicBtn').classList.add('recording');
+  document.getElementById('progMicLabel').textContent = 'Recording... tap to stop';
+  if (progCurrentPart.speak) startProgTimer(progCurrentPart.speak);
+  progRec.start();
+}
+
+function stopProgosRec() {
+  progRecActive = false;
+  if (progRec) { try { progRec.stop(); } catch (e) {} progRec = null; }
+  const b = document.getElementById('progMicBtn'); if (b) b.classList.remove('recording');
+  clearProgTimer();
+}
+
+function startProgTimer(speak) {
+  clearProgTimer();
+  let left = speak;
+  const disp = document.getElementById('progTimer'), lbl = document.getElementById('progTimerLabel');
+  disp.style.display = 'block'; lbl.style.display = 'block'; lbl.textContent = 'Speak';
+  const render = () => { const m = Math.floor(left / 60), s = left % 60; disp.textContent = `${m}:${s.toString().padStart(2, '0')}`; disp.className = 'timer-display' + (left <= 10 ? ' danger' : left <= 20 ? ' warning' : ''); };
+  render();
+  progTimer = setInterval(() => {
+    left--;
+    if (left < 0) { clearProgTimer(); stopProgosRec(); document.getElementById('progMicLabel').textContent = "Time's up!"; revealProgAfter(); }
+    else render();
+  }, 1000);
+}
+
+function clearProgTimer() { if (progTimer) { clearInterval(progTimer); progTimer = null; } }
+
+function showProgosModel() {
+  const item = progItems[progIndex];
+  document.getElementById('progModelText').textContent = item.model || '';
+  document.getElementById('progModel').style.display = 'block';
+  document.getElementById('progShowModel').style.display = 'none';
+  document.getElementById('progScoreButtons').style.display = 'flex';
+}
+
+function scoreProgos(score, e) {
+  const part = progCurrentPart, item = progItems[progIndex];
+  const ans = progInputMode === 'text' ? document.getElementById('progTextInput').value : progTranscriptText;
+  saveResult('progos', { part: part.key, prompt: (item.prompt || item.text || item.title || ''), userAnswer: ans, score: score, date: new Date().toISOString() });
+  document.querySelectorAll('#progScoreButtons .score-btn').forEach(b => b.classList.remove('selected'));
+  if (e && e.target) e.target.classList.add('selected');
+  document.getElementById('progNextBtn').style.display = 'block';
+}
+
+function nextProgos() { stopProgosRec(); progIndex++; showProgItem(); }
 </script>
 </body>
 </html>
