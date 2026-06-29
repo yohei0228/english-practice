@@ -772,6 +772,16 @@ function startTemplate() {
       currentQuestions.push({ ...q, templateId: t.id, template: t.template, category: t.category, meaning: t.meaning });
     }
   }
+  // Occasionally mix in Vocabulary-linked questions (link 構文 practice with 語彙)
+  if (typeof VOCAB_SAMPLE !== 'undefined' && VOCAB_SAMPLE.length && currentQuestions.length) {
+    const inject = Math.random() < 0.7 ? (Math.random() < 0.35 ? 2 : 1) : 0;
+    const vpool = VOCAB_SAMPLE.filter(w => w.exampleJp && w.exampleEn).sort(() => Math.random() - 0.5);
+    for (let k = 0; k < inject && k < vpool.length; k++) {
+      const w = vpool[k];
+      const pos = Math.floor(Math.random() * currentQuestions.length);
+      currentQuestions[pos] = { jp: w.exampleJp, en: w.exampleEn, hint: '語彙', templateId: 'V-' + w.term, template: w.term, meaning: w.jp, isVocab: true, vocabAlt: w.alt || '' };
+    }
+  }
   currentQuestionIndex = 0;
   showScreen('template');
   // Reset summary and show practice UI
@@ -805,7 +815,11 @@ function showTemplateQuestion() {
 function showTemplateAnswer() {
   const q = currentQuestions[currentQuestionIndex];
   document.getElementById('tplAnswerText').textContent = q.en;
-  document.getElementById('tplAnswerTemplate').textContent = `Template #${q.templateId}: ${q.template} (${q.meaning})`;
+  if (q.isVocab) {
+    document.getElementById('tplAnswerTemplate').innerHTML = `語彙: <b>${q.template}</b>（${q.meaning}）` + (q.vocabAlt ? ` ／ やさしい言い換え: ${q.vocabAlt}` : '');
+  } else {
+    document.getElementById('tplAnswerTemplate').textContent = `Template #${q.templateId}: ${q.template} (${q.meaning})`;
+  }
   document.getElementById('tplAnswer').style.display = 'block';
   document.getElementById('tplShowAnswer').style.display = 'none';
   document.getElementById('tplScoreButtons').style.display = 'flex';
@@ -1351,7 +1365,7 @@ function startVocabQuiz(source) {
 }
 
 function showVocabWord() {
-  if (vocabIndex >= vocabList.length) { alert('Done! ' + vocabList.length + ' words reviewed.'); showVocabHome(); return; }
+  if (vocabIndex >= vocabList.length) { showVocabHome(); return; }
   const w = vocabList[vocabIndex];
   document.getElementById('vocQNum').textContent = `Word ${vocabIndex + 1} / ${vocabList.length}`;
   document.getElementById('vocQMeaning').textContent = w.jp;
@@ -1448,12 +1462,14 @@ function selectProgosPart(key) {
   progCurrentPart = PROGOS.parts.find(p => p.key === key);
   if (key === 'roleplay') {
     progItems = [];
-    PROGOS.roleplay.forEach(sc => sc.turns.forEach((t, i) => progItems.push({
+    // shuffle scenarios, keep turns in order within each
+    const scenarios = [...PROGOS.roleplay].sort(() => Math.random() - 0.5);
+    scenarios.forEach(sc => sc.turns.forEach((t, i) => progItems.push({
       prompt: (i === 0 ? ('Situation: ' + sc.scenario + '\n\nAlex: ' + t.alex) : ('Alex: ' + t.alex)),
       points: t.hint, model: t.model
     })));
   } else {
-    progItems = (PROGOS[key] || []).slice();
+    progItems = (PROGOS[key] || []).slice().sort(() => Math.random() - 0.5);
   }
   progIndex = 0;
   document.getElementById('progosHome').style.display = 'none';
