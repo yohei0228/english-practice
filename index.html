@@ -1342,15 +1342,25 @@ function showVocabHome() {
   buildVocabRefList();
 }
 
+const THEME_ORDER = ['finance', 'strategy', 'ops', 'people', 'data', 'verb', 'descriptor', 'comms'];
+const THEME_LABEL = { finance: '財務・コマーシャル', strategy: '戦略・意思決定', ops: 'オペレーション・プロジェクト', people: '人・採用・フィードバック', data: 'データ・指標', verb: '一般ビジネス動詞', descriptor: '性質を表す語（形容詞・副詞）', comms: '会議・コミュニケーション定型', other: 'その他' };
 let vocabRefBuilt = false;
 function buildVocabRefList() {
   if (vocabRefBuilt || typeof VOCAB_SAMPLE === 'undefined') return;
   const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  let html = '<table><tr><th>term</th><th>IPA</th><th>pos</th><th>意味</th></tr>';
-  VOCAB_SAMPLE.forEach(w => {
-    html += `<tr><td>${esc(w.term)}</td><td>${esc(w.ipa || '')}</td><td>${esc(w.pos || '')}</td><td>${esc(w.jp)}${w.alt ? ' <span style="color:var(--text-light)">／' + esc(w.alt) + '</span>' : ''}</td></tr>`;
+  const groups = {};
+  VOCAB_SAMPLE.forEach(w => { const t = w.theme || 'other'; (groups[t] = groups[t] || []).push(w); });
+  const order = THEME_ORDER.filter(t => groups[t]);
+  if (groups.other) order.push('other');
+  const row = w => `<tr><td>${esc(w.term)}</td><td>${esc(w.ipa || '')}</td><td>${esc(w.pos || '')}</td><td>${esc(w.jp)}${w.alt ? ' <span style="color:var(--text-light)">／' + esc(w.alt) + '</span>' : ''}</td></tr>`;
+  let html = '';
+  order.forEach(t => {
+    const rows = groups[t].slice().sort((a, b) => a.term.localeCompare(b.term));
+    html += `<table style="margin-bottom:10px"><tr><th colspan="4" style="background:#eff6ff;color:var(--primary);text-align:left">${esc(THEME_LABEL[t] || t)}（${rows.length}）</th></tr>`;
+    html += `<tr><th>term</th><th>IPA</th><th>pos</th><th>意味</th></tr>`;
+    rows.forEach(w => { html += row(w); });
+    html += '</table>';
   });
-  html += '</table>';
   document.getElementById('vocabRefList').innerHTML = html;
   vocabRefBuilt = true;
 }
