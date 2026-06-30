@@ -543,6 +543,13 @@ header .back-btn {
       <button class="next-btn" style="display:block" onclick="startVocabQuiz('sample')">Start quiz — Business set (<span id="vocSampleCount">0</span>)</button>
       <button class="next-btn" style="display:block;margin-top:8px" id="vocMyBtn" onclick="startVocabQuiz('mine')">Start quiz — My words (<span id="vocMineCount">0</span>)</button>
       <button class="show-answer-btn" style="margin-top:8px" onclick="showVocabManage()">&#9881;&#65039; Manage my words</button>
+
+      <div class="template-ref" style="margin-top:12px">
+        <button class="template-toggle" id="vocListToggle" onclick="toggleVocabRefList()">
+          &#128214; 全 <span id="vocListCount">0</span> 語を一覧で見る（タップで開閉）
+        </button>
+        <div class="template-list" id="vocabRefList"></div>
+      </div>
     </div>
 
     <!-- Vocab manage -->
@@ -1326,11 +1333,29 @@ function showVocabHome() {
   document.getElementById('vocabHome').style.display = 'block';
   document.getElementById('vocabManage').style.display = 'none';
   document.getElementById('vocabQuiz').style.display = 'none';
-  document.getElementById('vocSampleCount').textContent = (typeof VOCAB_SAMPLE !== 'undefined' ? VOCAB_SAMPLE.length : 0);
+  const n = (typeof VOCAB_SAMPLE !== 'undefined' ? VOCAB_SAMPLE.length : 0);
+  document.getElementById('vocSampleCount').textContent = n;
+  document.getElementById('vocListCount').textContent = n;
   const mine = getMyVocab();
   document.getElementById('vocMineCount').textContent = mine.length;
   document.getElementById('vocMyBtn').style.opacity = mine.length ? '1' : '0.5';
+  buildVocabRefList();
 }
+
+let vocabRefBuilt = false;
+function buildVocabRefList() {
+  if (vocabRefBuilt || typeof VOCAB_SAMPLE === 'undefined') return;
+  const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  let html = '<table><tr><th>term</th><th>IPA</th><th>pos</th><th>意味</th></tr>';
+  VOCAB_SAMPLE.forEach(w => {
+    html += `<tr><td>${esc(w.term)}</td><td>${esc(w.ipa || '')}</td><td>${esc(w.pos || '')}</td><td>${esc(w.jp)}${w.alt ? ' <span style="color:var(--text-light)">／' + esc(w.alt) + '</span>' : ''}</td></tr>`;
+  });
+  html += '</table>';
+  document.getElementById('vocabRefList').innerHTML = html;
+  vocabRefBuilt = true;
+}
+
+function toggleVocabRefList() { document.getElementById('vocabRefList').classList.toggle('show'); }
 
 function showVocabManage() {
   document.getElementById('vocabHome').style.display = 'none';
@@ -1388,7 +1413,8 @@ function showVocabWord() {
 function showVocabAnswer() {
   const w = vocabList[vocabIndex];
   const badge = w.reg ? `  —  ${REG_LABEL[w.reg] || ''}` : '';
-  document.getElementById('vocAnswerText').textContent = w.term + (w.pos ? ` (${w.pos})` : '') + badge;
+  const ipa = w.ipa ? `  ${w.ipa}` : '';
+  document.getElementById('vocAnswerText').textContent = w.term + ipa + (w.pos ? ` (${w.pos})` : '') + badge;
   const ex = w.exampleEn ? `<div>${w.exampleEn}</div>` : '';
   const altLine = w.alt ? `<div style="margin-top:8px;color:var(--primary)">やさしい言い換え: <b>${w.alt}</b>（平易な語で言えればOK。この語は一段上の言い方）</div>` : '';
   document.getElementById('vocAnswerExample').innerHTML = ex + altLine;
