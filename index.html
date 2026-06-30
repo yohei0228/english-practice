@@ -1353,9 +1353,10 @@ function buildVocabRefList() {
   const order = THEME_ORDER.filter(t => groups[t]);
   if (groups.other) order.push('other');
   const row = w => `<tr><td>${esc(w.term)}</td><td>${esc(w.ipa || '')}</td><td>${esc(w.pos || '')}</td><td>${esc(w.jp)}${w.alt ? ' <span style="color:var(--text-light)">／' + esc(w.alt) + '</span>' : ''}</td></tr>`;
+  const posRank = p => ({ v: 0, n: 1, adj: 2, adv: 3, phr: 4 })[String(p || '').split('/')[0]] ?? 5;
   let html = '';
   order.forEach(t => {
-    const rows = groups[t].slice().sort((a, b) => a.term.localeCompare(b.term));
+    const rows = groups[t].slice().sort((a, b) => (posRank(a.pos) - posRank(b.pos)) || a.term.localeCompare(b.term));
     html += `<table style="margin-bottom:10px"><tr><th colspan="4" style="background:#eff6ff;color:var(--primary);text-align:left">${esc(THEME_LABEL[t] || t)}（${rows.length}）</th></tr>`;
     html += `<tr><th>term</th><th>IPA</th><th>pos</th><th>意味</th></tr>`;
     rows.forEach(w => { html += row(w); });
